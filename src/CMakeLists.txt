@@ -2,6 +2,7 @@ add_sources(
     address.cc
     debugger.cc
     gameboy.cc
+    input.cc
     main.cc
     mmu.cc
     register.cc

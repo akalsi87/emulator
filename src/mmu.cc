@@ -1,16 +1,19 @@
 #include "mmu.h"
 
 #include "boot.h"
+#include "input.h"
 #include "util/log.h"
+#include "util/bitwise.h"
 #include "cpu/cpu.h"
 #include "video/video.h"
 
 #include <cstdlib>
 
-MMU::MMU(Cartridge& inCartridge, CPU& inCPU, Video& inVideo) :
+MMU::MMU(Cartridge& inCartridge, CPU& inCPU, Video& inVideo, std::shared_ptr<Input> inInput) :
     cartridge(inCartridge),
     cpu(inCPU),
-    video(inVideo)
+    video(inVideo),
+    input(inInput)
 {
     memory = std::vector<u8>(0x10000);
 }
@@ -81,8 +84,7 @@ u8 MMU::memory_read(const Address& address) const {
 u8 MMU::read_io(const Address& address) const {
     switch (address.value()) {
         case 0xFF00:
-            log_unimplemented("Attempted to read joypad register");
-            return 0xFF;
+            return input->get_input();
 
         case 0xFF01:
             log_unimplemented("Attempted to read serial transfer data");
@@ -90,6 +92,10 @@ u8 MMU::read_io(const Address& address) const {
 
         case 0xFF02:
             log_unimplemented("Attempted to read serial transfer control");
+            return 0xFF;
+
+        case 0xFF04:
+            log_unimplemented("Attempted to read divider register");
             return 0xFF;
 
         case 0xFF0F:
@@ -189,7 +195,7 @@ void MMU::write(const Address& address, const u8 byte) {
 void MMU::write_io(const Address& address, const u8 byte) {
     switch (address.value()) {
         case 0xFF00:
-            /* TODO: Joypad */
+            input->write(byte);
             return;
 
         case 0xFF01:
@@ -248,7 +254,7 @@ void MMU::write_io(const Address& address, const u8 byte) {
 
         case 0xFF25:
             /* TODO */
-            log_unimplemented("Wrote to selection of sound output terminal address 0x%x - 0x%x", address.value(), byte);
+            /* log_unimplemented("Wrote to selection of sound output terminal address 0x%x - 0x%x", address.value(), byte); */
             return;
 
         case 0xFF26:
@@ -300,6 +306,10 @@ void MMU::write_io(const Address& address, const u8 byte) {
         case 0xFF44:
             /* "Writing will reset the counter */
             log_unimplemented("Writing to FF44 will reset the line counter");
+            return;
+
+        case 0xFF46:
+            /* log_unimplemented("Wrote to DMA address"); */
             return;
 
         case 0xFF47:

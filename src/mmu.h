@@ -4,13 +4,15 @@
 #include "cartridge/cartridge.h"
 
 #include <vector>
+#include <memory>
 
 class Video;
 class CPU;
+class Input;
 
 class MMU {
 public:
-    MMU(Cartridge& inCartridge, CPU& inCPU, Video& inVideo);
+    MMU(Cartridge& inCartridge, CPU& inCPU, Video& inVideo, std::shared_ptr<Input> input);
 
     u8 read(const Address& address) const;
     void write(const Address& address, u8 byte);
@@ -27,6 +29,7 @@ private:
     Cartridge& cartridge;
     CPU& cpu;
     Video& video;
+    std::shared_ptr<Input> input;
     std::vector<u8> memory;
 
     friend class Debugger;
